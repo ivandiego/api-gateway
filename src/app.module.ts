@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { UserController } from './users/user.controller';
+import { AppController } from './users/user.controller';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -11,7 +12,8 @@ import { UserController } from './users/user.controller';
       { name: 'PAYMENT_SERVICE', transport: Transport.KAFKA, options: { client: { brokers: ['kafka:9092'] }, consumer: { groupId: 'payment-service' } } },
       { name: 'NOTIFICATION_SERVICE', transport: Transport.KAFKA, options: { client: { brokers: ['kafka:9092'] }, consumer: { groupId: 'notification-service' } } },
     ]),
+    AuthModule,
   ],
-  controllers: [UserController],
+  controllers: [AppController],
 })
 export class AppModule {}
