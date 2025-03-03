@@ -28,7 +28,14 @@ export class AuthService {
   }
 
   async login(user: any) {
-    const payload = { username: user.username, sub: user.id };
-    return { access_token: this.jwtService.sign(payload) };
+        // Gera o payload do JWT
+        const payload = { username: user.username, sub: user.id };
+        return {
+          access_token: this.jwtService.sign(payload, {
+            secret: process.env.JWT_SECRET, // 🔒 Chave secreta vinda do .env
+            expiresIn: '1h', // Define um tempo de expiração
+          }),
+        };
   }
+  
 }

@@ -1,8 +1,8 @@
 import { Controller, Get, Post, Body, Inject } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-
+import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
+import { RegisterDto } from './dto/register.dto';
 @ApiTags('Users')
 @Controller('users')
 export class AppController {
@@ -24,6 +24,8 @@ export class AppController {
 
   @Post()
   @ApiOperation({ summary: 'Create a new user' })
+  @ApiResponse({ status: 400, description: 'Invalid input data' })
+  @ApiBody({ type: RegisterDto }) // Define o corpo da requisição esperado no Swagger
   @ApiResponse({ status: 201, description: 'User successfully created' })
   async createUser(@Body() createUserDto: { username: string; password: string }) {
     return await firstValueFrom(this.userService.send('create_user', createUserDto));
