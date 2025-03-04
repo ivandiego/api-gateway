@@ -2,11 +2,13 @@ import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ClientKafka } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
+import { User } from './model/user.model';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @Inject('USER_SERVICE') private readonly userService: ClientKafka,
+    @Inject('USER_SERVICE') 
+    private readonly userService: ClientKafka,
     private readonly jwtService: JwtService
   ) {}
 
@@ -15,7 +17,7 @@ export class AuthService {
     await this.userService.connect();
   }
 
-  async validateUser(username: string, password: string) {
+  async validateUser(username: string, password: string): Promise<User | null> {
     const user = await firstValueFrom(
       this.userService.send('validate_user', { username, password })
     );
@@ -26,16 +28,11 @@ export class AuthService {
 
     return user;
   }
+  
 
-  async login(user: any) {
-        // Gera o payload do JWT
-        const payload = { username: user.username, sub: user.id };
-        return {
-          access_token: this.jwtService.sign(payload, {
-            secret: process.env.JWT_SECRET, // 🔒 Chave secreta vinda do .env
-            expiresIn: '1h', // Define um tempo de expiração
-          }),
-        };
+  async login(user: User) {
+    const payload = { sub: user.id, username: user.username, role: user.role };
+    return { access_token: this.jwtService.sign(payload) };
   }
   
 }

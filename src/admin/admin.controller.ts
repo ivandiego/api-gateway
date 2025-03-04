@@ -1,10 +1,13 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Inject } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Inject, UseGuards } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { CreateTicketDto } from './dto/create-ticket.dto';
-
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '../auth/role.enum';
 @Controller('admin')
 export class AdminController {
   constructor(@Inject('ADMIN_SERVICE') private readonly salesService: ClientKafka) {}
@@ -25,6 +28,8 @@ export class AdminController {
   }
 
    // ✅ Endpoint para listar todas as vendas realizadas
+   @UseGuards(JwtAuthGuard, RolesGuard)
+   @Roles(Role.Admin)
    @Get('all-sales')
    async getAllSales() {
     return await firstValueFrom(this.salesService.send('get_all_sales', {}));

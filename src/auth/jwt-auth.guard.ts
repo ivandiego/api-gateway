@@ -3,7 +3,13 @@ import { AuthGuard } from '@nestjs/passport';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
-  handleRequest(err, user) {
+  canActivate(context: ExecutionContext) {
+    return super.canActivate(context);
+  }
+
+  handleRequest(err, user, info) {
+    console.log('User extracted in JwtAuthGuard:', user); // ✅ DEBUG para verificar user extraído
+
     if (err || !user) {
       throw new UnauthorizedException('Unauthorized');
     }
