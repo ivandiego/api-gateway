@@ -17,4 +17,4 @@ COPY . .
 EXPOSE 3000
 
 # Comando para rodar o serviço
-CMD ["npm", "run", "start"]
+CMD ["npm", "run", "start", "nodemon"]
