@@ -19,8 +19,16 @@ export class AdminController {
     this.salesService.subscribeToResponseOf('get_tickets');
     this.salesService.subscribeToResponseOf('delete_ticket');
     // this.salesService.subscribeToResponseOf('update_ticket');
+    this.salesService.subscribeToResponseOf('get_all_sales');
+
     await this.salesService.connect();
   }
+
+   // ✅ Endpoint para listar todas as vendas realizadas
+   @Get('all-sales')
+   async getAllSales() {
+    return await firstValueFrom(this.salesService.send('get_all_sales', {}));
+   }
 
   // ✅ Criar um evento
   @Post('events')
