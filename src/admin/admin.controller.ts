@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, Inject, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { ClientKafka } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 import { CreateEventDto } from './dto/create-event.dto';
@@ -45,6 +45,7 @@ export class AdminController {
   @Post('events')
   @ApiOperation({ summary: 'Create a new event' })
   @ApiResponse({ status: 201, description: 'Event successfully created' })
+  @ApiBody({ description: 'Event data', type: CreateEventDto })
   async createEvent(@Body() createEventDto: CreateEventDto) {
     return await firstValueFrom(this.salesService.send('create_event', createEventDto));
   }
@@ -69,6 +70,7 @@ export class AdminController {
   @Put('events/:id')
   @ApiOperation({ summary: 'Update an event' })
   @ApiResponse({ status: 200, description: 'Event updated successfully' })
+  @ApiBody({ description: 'Updated event data', type: UpdateEventDto })
   async updateEvent(@Param('id') id: string, @Body() updateEventDto: UpdateEventDto) {
     return await firstValueFrom(this.salesService.send('update_event', { id, updateEventDto }));
   }
@@ -93,6 +95,7 @@ export class AdminController {
   @Get('tickets')
   @ApiOperation({ summary: 'Get all tickets' })
   @ApiResponse({ status: 200, description: 'List of all tickets' })
+  @ApiBody({ description: 'Ticket data', type: CreateTicketDto })
   async getAllTickets() {
     return await firstValueFrom(this.salesService.send('get_tickets', {}));
   }

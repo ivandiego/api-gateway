@@ -31,6 +31,10 @@ export class SalesController {
   
     // ✅ Comprar bilhete
     @Post('buy-ticket')
+    @ApiBody({
+      description: 'Details required to buy a ticket',
+      type: CreateTicketDto,
+    })
     @ApiOperation({ summary: 'Buy a ticket for an event' })
     @ApiResponse({ status: 201, description: 'Ticket successfully purchased' })
     @ApiResponse({ status: 400, description: 'Validation failed or not enough tickets available' })  
