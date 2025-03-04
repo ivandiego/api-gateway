@@ -11,6 +11,8 @@ import { User } from '../users/model/user.model';
 
 @ApiTags('Users')
 @Controller('users')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(Role.User)
 export class AppController {
   constructor(@Inject('USER_SERVICE') private readonly userService: ClientKafka) {}
 
@@ -21,14 +23,12 @@ export class AppController {
   }
 
   
-  @Get()
-  @ApiOperation({ summary: 'Get all users' })
-  @ApiResponse({ status: 200, description: 'List of users' })
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.Admin)
-  async getAllUsers() {
-    return await firstValueFrom(this.userService.send('get_all_users', {}));
-  }
+  // @Get()
+  // @ApiOperation({ summary: 'Get all users' })
+  // @ApiResponse({ status: 200, description: 'List of users' })
+  // async getAllUsers() {
+  //   return await firstValueFrom(this.userService.send('get_all_users', {}));
+  // }
 
   @Post()
   @ApiOperation({ summary: 'Create a new user' })
