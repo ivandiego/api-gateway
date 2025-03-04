@@ -16,14 +16,6 @@ export class AdminController {
     await this.userService.connect();
   }
 
-    // ✅ Listar eventos disponíveis
-    @Get('events')
-    async getAvailableEvents() {
-        const events = await firstValueFrom(this.userService.send('get_available_events', {}));
-        return {events};
-
-    }
-
     // ✅ Criar um evento
     @Post('events')
     async createEvent(@Body() createEventDto: CreateEventDto) {
