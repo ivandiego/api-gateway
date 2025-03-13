@@ -8,8 +8,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 
   handleRequest(err, user, info) {
-    console.log('User extracted in JwtAuthGuard:', user); // ✅ DEBUG para verificar user extraído
-
     if (err || !user) {
       throw new UnauthorizedException('Unauthorized');
     }

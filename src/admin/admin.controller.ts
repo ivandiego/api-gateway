@@ -20,7 +20,6 @@ export class AdminController {
 
   async onModuleInit() {
     this.salesService.subscribeToResponseOf('create_event');
-    this.salesService.subscribeToResponseOf('get_available_events');
     this.salesService.subscribeToResponseOf('get_event_by_id');
     this.salesService.subscribeToResponseOf('update_event');
     this.salesService.subscribeToResponseOf('delete_event');
@@ -33,30 +32,63 @@ export class AdminController {
     await this.salesService.connect();
   }
 
-  // ✅ Endpoint para listar todas as vendas realizadas
-  @Get('all-sales')
-  @ApiOperation({ summary: 'List all sales transactions' })
-  @ApiResponse({ status: 200, description: 'List of all sales' })
-   async getAllSales() {
-    return await firstValueFrom(this.salesService.send('get_all_sales', {}));
+@Get('all-sales')
+@ApiOperation({ summary: 'List all sales transactions' })
+@ApiResponse({ status: 200, description: 'List of all sales' })
+async getAllSales() {
+  try {
+    console.log("🟢 Sending request to fetch all sales...");
+    const sales = await firstValueFrom(this.salesService.send('get_all_sales', {}));
+    
+    console.log("✅ Sales received from Kafka:", JSON.stringify(sales));
+    
+    return { success: true, data: sales };
+  } catch (error) {
+    console.error("❌ Error in getAllSales:", error.message);
+    return { success: false, message: "Failed to fetch sales", error: error.message };
+  }
+}
+
+
+
+
+   @Post('events')
+   @ApiOperation({ summary: 'Create a new event' })
+   @ApiResponse({ status: 201, description: 'Event successfully created' })
+   @ApiBody({ description: 'Event data', schema: {
+     type: 'object',
+     properties: {
+       name: { type: 'string', format: 'string', example: 'Show do Coldplay' },
+       userId: { type: 'string', format: 'uuid', example: '123e4567-e89b-12d3-a456-426614174000' }
+     }
+   }})
+   async createEvent(@Body() createEventDto: { 
+     userId: string; 
+     name: string; 
+   }) {
+     try {
+       console.log("🟢 Create a new event request received:", JSON.stringify(createEventDto));
+   
+       // 🔹 Definir availableTickets e totalTickets como 0 antes de enviar para Kafka
+       const eventData = {
+         ...createEventDto,
+         availableTickets: 0,
+         totalTickets: 0
+       };
+   
+       // 🔥 Enviar os dados para o Kafka
+       const event = await firstValueFrom(this.salesService.send('create_event', eventData));
+   
+       console.log("✅ Event successfully sent to Kafka:", JSON.stringify(event));
+   
+       return { success: true, data: event };
+     } catch (error) {
+       console.error("❌ Error in createEvent:", error.message);
+       return { success: false, message: error.message };
+     }
    }
+   
 
-  // ✅ Criar um evento
-  @Post('events')
-  @ApiOperation({ summary: 'Create a new event' })
-  @ApiResponse({ status: 201, description: 'Event successfully created' })
-  @ApiBody({ description: 'Event data', type: CreateEventDto })
-  async createEvent(@Body() createEventDto: CreateEventDto) {
-    return await firstValueFrom(this.salesService.send('create_event', createEventDto));
-  }
-
-  // ✅ Listar eventos disponíveis
-  @Get('events')
-  @ApiOperation({ summary: 'Get available events' })
-  @ApiResponse({ status: 200, description: 'List of available events' })
-  async getAvailableEvents() {
-    return await firstValueFrom(this.salesService.send('get_available_events', {}));
-  }
 
   // ✅ Buscar evento por ID
   @Get('events/:id')
@@ -95,7 +127,6 @@ export class AdminController {
   @Get('tickets')
   @ApiOperation({ summary: 'Get all tickets' })
   @ApiResponse({ status: 200, description: 'List of all tickets' })
-  @ApiBody({ description: 'Ticket data', type: CreateTicketDto })
   async getAllTickets() {
     return await firstValueFrom(this.salesService.send('get_tickets', {}));
   }

@@ -1,7 +1,15 @@
-import { IsString, IsInt, Min } from 'class-validator';
+import { IsString, IsInt, Min, IsUUID } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateEventDto {
+
+  @ApiProperty({
+    description: 'ID do usuário que está criando o evento',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @IsUUID()
+  userId: string;
+
   @ApiProperty({
     description: 'Nome do evento',
     example: 'Show do Coldplay',
