@@ -35,7 +35,7 @@ async function bootstrap() {
           : undefined, // 🔥 Se local, não usa autenticação
       },
       consumer: {
-        groupId: process.env.KAFKA_GROUP_ID || 'api-gateway-group-server',
+        groupId: process.env.KAFKA_GROUP_ID || 'api-gateway-group',
       },
     },
   });
