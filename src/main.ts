@@ -11,7 +11,7 @@ async function bootstrap() {
   const kafkaBroker = process.env.KAFKA_BROKER || 'localhost:9092';
   const kafkaUsername = process.env.KAFKA_USERNAME || '';
   const kafkaPassword = process.env.KAFKA_PASSWORD || '';
-  const kafkaSSL = process.env.KAFKA_SSL === 'true'; // 🔥 Converte string para booleano
+  const kafkaSSL = process.env.KAFKA_SSL === 'true';
 
   console.log(`🚀 Conectando ao Kafka em: ${kafkaBroker}`);
   console.log(`🔹 Kafka SSL: ${kafkaSSL ? 'Ativado' : 'Desativado'}`);
@@ -24,7 +24,7 @@ async function bootstrap() {
     options: {
       client: {
         brokers: [kafkaBroker],
-        ssl: kafkaSSL, // ✅ Agora o SSL será interpretado corretamente
+        ssl: kafkaSSL,
         sasl: kafkaSSL
           ? {
               mechanism: 'plain',
@@ -35,6 +35,11 @@ async function bootstrap() {
       },
       consumer: {
         groupId: process.env.KAFKA_GROUP_ID || 'api-gateway-group',
+        sessionTimeout: 30000, // 🔥 Aguarda 30 segundos para estabilizar a conexão
+        heartbeatInterval: 5000, // 🔥 Envia batimentos cardíacos para manter a conexão ativa
+        retry: {
+          retries: 5, // 🔥 Tenta conectar 5 vezes antes de falhar
+        },
       },
     },
   });
@@ -52,7 +57,7 @@ async function bootstrap() {
   // 🔥 Definir a porta automaticamente via Railway
   const port = process.env.PORT || 3000;
   await app.startAllMicroservices();
-  await app.listen(port, '0.0.0.0'); // 🔥 Escuta em todas as interfaces
+  await app.listen(port, '0.0.0.0');
 
   console.log(`🚀 API Gateway rodando na porta ${port}`);
   console.log(`📖 Swagger UI disponível em: http://localhost:${port}/api/docs`);
