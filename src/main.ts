@@ -9,18 +9,15 @@ async function bootstrap() {
 
   // Definir configurações de conexão do Kafka
   const kafkaBroker = process.env.KAFKA_BROKER || 'localhost:9092';
-  const kafkaUsername = process.env.KAFKA_USERNAME || '';
-  const kafkaPassword = process.env.KAFKA_PASSWORD || '';
+  const kafkaUsername = process.env.KAFKA_USERNAME;
+  const kafkaPassword = process.env.KAFKA_PASSWORD;
+  const useSSL = process.env.KAFKA_SSL === 'true'; // ✅ Conversão correta para booleano
 
-  // Verificar se estamos rodando no Confluent Cloud
-  const isCloudKafka = process.env.KAFKA_BROKER !== undefined;
+  // Verifica se está usando Confluent Cloud (precisa de autenticação)
+  const isCloudKafka = kafkaUsername && kafkaPassword;
 
   console.log(`🚀 Conectando ao Kafka em: ${kafkaBroker}`);
-  if (isCloudKafka) {
-    console.log('🌍 Usando Confluent Cloud');
-  } else {
-    console.log('💻 Rodando localmente no Kafka');
-  }
+  console.log(isCloudKafka ? '🌍 Usando Confluent Cloud' : '💻 Rodando localmente no Kafka');
 
   // Conexão com Kafka
   app.connectMicroservice<MicroserviceOptions>({
@@ -28,20 +25,24 @@ async function bootstrap() {
     options: {
       client: {
         brokers: [kafkaBroker],
-        ssl: isCloudKafka, // 🔥 SSL só se estiver na nuvem
+        ssl: useSSL, // ✅ Agora é booleano
         sasl: isCloudKafka
           ? {
               mechanism: 'plain',
               username: kafkaUsername,
               password: kafkaPassword,
             }
-          : undefined, // Se for local, não usa autenticação
+          : undefined, // 🔥 Se local, não usa autenticação
       },
       consumer: {
         groupId: process.env.KAFKA_GROUP_ID || 'api-gateway-group',
       },
     },
   });
+
+  // Inicia os microserviços primeiro
+  await app.startAllMicroservices();
+  await app.init(); // 🔥 Garante que tudo está inicializado antes de escutar requisições HTTP
 
   // Configuração do Swagger
   const config = new DocumentBuilder()
@@ -55,8 +56,7 @@ async function bootstrap() {
 
   // 🔥 Definir a porta automaticamente via Railway
   const port = process.env.PORT || 3000;
-  await app.startAllMicroservices();
-  await app.listen(port, '0.0.0.0'); // 🔥 Escuta em todas as interfaces
+  await app.listen(port, '0.0.0.0'); // 🔥 Escuta em todas as interfaces (necessário para Railway)
 
   console.log(`🚀 API Gateway rodando na porta ${port}`);
   console.log(`📖 Swagger UI disponível em: http://localhost:${port}/api/docs`);
