@@ -1,11 +1,21 @@
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-//import { AppModule } from '../../../user-service/src/app.module'; //../users/user.module
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './jwt.strategy';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+
+// 🔥 Configuração do Kafka (Railway + Confluent Cloud)
+const kafkaBroker = process.env.KAFKA_BROKER || 'localhost:9092';
+const kafkaSasl =
+  process.env.KAFKA_USERNAME && process.env.KAFKA_PASSWORD
+    ? {
+        mechanism: 'plain' as const,
+        username: process.env.KAFKA_USERNAME,
+        password: process.env.KAFKA_PASSWORD,
+      }
+    : undefined;
 
 @Module({
   imports: [
@@ -20,10 +30,12 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
         transport: Transport.KAFKA,
         options: {
           client: {
-            brokers: ['kafka:9092'],
+            brokers: [kafkaBroker],
+            ssl: !!kafkaSasl,
+            sasl: kafkaSasl,
           },
           consumer: {
-            groupId: 'auth-service',
+            groupId: process.env.KAFKA_GROUP_ID || 'auth-service',
           },
         },
       },
@@ -31,6 +43,6 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],
-  exports: [AuthService,JwtStrategy],
+  exports: [AuthService, JwtStrategy],
 })
 export class AuthModule {}
