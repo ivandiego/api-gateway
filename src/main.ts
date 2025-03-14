@@ -9,15 +9,14 @@ async function bootstrap() {
 
   // Definir configurações de conexão do Kafka
   const kafkaBroker = process.env.KAFKA_BROKER || 'localhost:9092';
-  const kafkaUsername = process.env.KAFKA_USERNAME;
-  const kafkaPassword = process.env.KAFKA_PASSWORD;
-  const useSSL = process.env.KAFKA_SSL === 'true'; // ✅ Conversão correta para booleano
-
-  // Verifica se está usando Confluent Cloud (precisa de autenticação)
-  const isCloudKafka = kafkaUsername && kafkaPassword;
+  const kafkaUsername = process.env.KAFKA_USERNAME || '';
+  const kafkaPassword = process.env.KAFKA_PASSWORD || '';
+  const kafkaSSL = process.env.KAFKA_SSL === 'true'; // 🔥 Converte string para booleano
 
   console.log(`🚀 Conectando ao Kafka em: ${kafkaBroker}`);
-  console.log(isCloudKafka ? '🌍 Usando Confluent Cloud' : '💻 Rodando localmente no Kafka');
+  console.log(`🔹 Kafka SSL: ${kafkaSSL ? 'Ativado' : 'Desativado'}`);
+  console.log(`🔹 Kafka Username: ${kafkaUsername}`);
+  console.log(`🔹 Kafka Group ID: ${process.env.KAFKA_GROUP_ID}`);
 
   // Conexão com Kafka
   app.connectMicroservice<MicroserviceOptions>({
@@ -25,24 +24,20 @@ async function bootstrap() {
     options: {
       client: {
         brokers: [kafkaBroker],
-        ssl: useSSL, // ✅ Agora é booleano
-        sasl: isCloudKafka
+        ssl: kafkaSSL, // ✅ Agora o SSL será interpretado corretamente
+        sasl: kafkaSSL
           ? {
               mechanism: 'plain',
               username: kafkaUsername,
               password: kafkaPassword,
             }
-          : undefined, // 🔥 Se local, não usa autenticação
+          : undefined,
       },
       consumer: {
-        groupId: process.env.KAFKA_GROUP_ID || 'api-gateway-group-server',
+        groupId: process.env.KAFKA_GROUP_ID || 'api-gateway-group',
       },
     },
   });
-
-  // Inicia os microserviços primeiro
-  await app.startAllMicroservices();
-  await app.init(); // 🔥 Garante que tudo está inicializado antes de escutar requisições HTTP
 
   // Configuração do Swagger
   const config = new DocumentBuilder()
@@ -56,7 +51,8 @@ async function bootstrap() {
 
   // 🔥 Definir a porta automaticamente via Railway
   const port = process.env.PORT || 3000;
-  await app.listen(port, '0.0.0.0'); // 🔥 Escuta em todas as interfaces (necessário para Railway)
+  await app.startAllMicroservices();
+  await app.listen(port, '0.0.0.0'); // 🔥 Escuta em todas as interfaces
 
   console.log(`🚀 API Gateway rodando na porta ${port}`);
   console.log(`📖 Swagger UI disponível em: http://localhost:${port}/api/docs`);
