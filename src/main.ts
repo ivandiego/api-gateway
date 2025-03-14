@@ -53,10 +53,13 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
+  // 🔥 Definir a porta automaticamente via Railway
+  const port = process.env.PORT || 3000;
   await app.startAllMicroservices();
-  await app.listen(3000);
+  await app.listen(port, '0.0.0.0'); // 🔥 Escuta em todas as interfaces
 
-  console.log('🚀 API Gateway rodando em: http://localhost:3000');
-  console.log('📖 Swagger UI disponível em: http://localhost:3000/api/docs');
+  console.log(`🚀 API Gateway rodando na porta ${port}`);
+  console.log(`📖 Swagger UI disponível em: http://localhost:${port}/api/docs`);
 }
+
 bootstrap();
