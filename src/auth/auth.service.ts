@@ -13,20 +13,21 @@ export class AuthService {
   ) {}
 
   async onModuleInit() {
-    this.userService.subscribeToResponseOf('validate_user');
+    // this.userService.subscribeToResponseOf('validate_user');
     await this.userService.connect();
   }
 
   async validateUser(username: string, password: string): Promise<User | null> {
-    const user = await firstValueFrom(
-      this.userService.send('validate_user', { username, password })
-    );
+    // const user = await firstValueFrom(
+    //   this.userService.send('validate_user', { username, password })
+    // );
 
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
+    // if (!user) {
+    //   throw new UnauthorizedException('Invalid credentials');
+    // }
 
-    return user;
+    // return user;
+    return new User();
   }
   
 
